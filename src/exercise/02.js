@@ -1,22 +1,51 @@
 import styled from "styled-components";
 import React, { useEffect, useState } from "react";
 
-/* ✅ modify this usePokemon custom hook to take in a query as an argument */
-export function usePokemon() {
-  /* ✅ this hook should only return one thing: an object with the pokemon data */
+
+
+
+export function usePokemon(query) {
+     console.log(query);
+  const [{ data, errors, status }, setState] = useState({
+    data: null,
+    errors: null,
+    status: "idle",
+  });
+
+  useEffect(() => {
+    setState(state => ({ ...state, errors: null, status: "pending" }));
+    fetch(`https://pokeapi.co/api/v2/pokemon/${query}`)
+    .then(async (r) => {
+      if (r.ok) {
+        return r.json();
+      } else {
+        const err = await r.text();
+        throw err;
+      }
+    })
+    .then(data => {
+      setState({ data, errors: null, status: "fulfilled" });
+    })
+    .catch(err => {
+      setState({ data: null, errors: [err], status: "rejected" });
+    });
+  }, [query]);
+  return { data, status, errors };
+
 }
 
+
+//TASKS
+/* ✅ modify this usePokemon custom hook to take in a query as an argument */
+
+/* ✅ 2.this hook should only return one thing: an object with the pokemon data */
+/* 
+✅ 3.  move the code from the useState and useEffect hooks into the usePokemon hook
+then, call the usePokemon hook to access the pokemon data in this component
+ */
+
 function Pokemon({ query }) {
-  /* 
-   ✅ move the code from the useState and useEffect hooks into the usePokemon hook
-   then, call the usePokemon hook to access the pokemon data in this component
-  */
-  const [pokemon, setPokemon] = useState(null);
-  useEffect(() => {
-    fetch(`https://pokeapi.co/api/v2/pokemon/${query}`)
-      .then(r => r.json())
-      .then(setPokemon);
-  }, [query]);
+  const {data:pokemon}=usePokemon(query)
 
   // 🚫 don't worry about the code below here, you shouldn't have to touch it
   if (!pokemon) return <h3>Loading...</h3>;
